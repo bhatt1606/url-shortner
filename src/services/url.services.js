@@ -18,8 +18,6 @@ async function createShortUrl(data) {
     throw new Error("Alias already exists");
   }
 
-  console.log('helllooooooo');
-
   let expiresAt = null;
 
   if (expiresInDays) {
@@ -33,8 +31,6 @@ async function createShortUrl(data) {
     redirectUrl: url,
     expiresAt,
   });
-
-  console.log('helllooouuuuuuuuuu');
 
   await cache.set(shortId, {
     redirectUrl: createdUrl.redirectUrl,

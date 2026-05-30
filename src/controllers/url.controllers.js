@@ -3,8 +3,6 @@ const urlService = require("../services/url.services");
 async function createShortUrl(req, res) {
   try {
     const { url } = req.body;
-
-    console.log('urk:::::::::::::::');
     
     if (!url) {
       return res.status(400).json({

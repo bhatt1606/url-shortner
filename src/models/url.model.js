@@ -7,17 +7,14 @@ const urlSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
-
     redirectUrl: {
       type: String,
       required: true,
     },
-
     totalClicks: {
       type: Number,
       default: 0,
     },
-
     expiresAt: {
       type: Date,
       default: null,

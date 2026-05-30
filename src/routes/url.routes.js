@@ -5,16 +5,25 @@ const router = express.Router();
 const urlController = require("../controllers/url.controllers");
 const urlRateLimiter = require("../middleware/urlRateLimiter");
 
-router.post("/url", urlController.createShortUrl);
+const {
+  createShortUrl,
+  getAnalytics,
+  redirectUrl,
+  getAnalyticsSummary,
+  getClickTrends,
+  getHourlyTrends,
+} = require("../controllers/url.controllers");
 
-router.get("/analytics/:shortId", urlController.getAnalytics);
+router.post("/url", createShortUrl);
 
-router.get("/:shortId", urlRateLimiter, urlController.redirectUrl);
+router.get("/analytics/:shortId", getAnalytics);
 
-router.get("/analytics/:shortId/summary", urlController.getAnalyticsSummary);
+router.get("/:shortId", urlRateLimiter, redirectUrl);
 
-router.get("/analytics/:shortId/trends", urlController.getClickTrends);
+router.get("/analytics/:shortId/summary", getAnalyticsSummary);
 
-router.get("/analytics/:shortId/hourly-trends", urlController.getHourlyTrends);
+router.get("/analytics/:shortId/trends", getClickTrends);
+
+router.get("/analytics/:shortId/hourly-trends", getHourlyTrends);
 
 module.exports = router;

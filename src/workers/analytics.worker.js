@@ -1,6 +1,6 @@
 require("dotenv").config();
 
-console.log("🚀 Analytics Worker Starting...");
+console.log("Analytics Worker Starting...");
 
 const { Worker } = require("bullmq");
 
@@ -16,14 +16,14 @@ async function startWorker() {
     // Connect MongoDB
     await connectDB();
 
-    console.log("✅ Mongodb Connected");
+    console.log("Mongodb Connected...");
 
     // Create Worker
     const worker = new Worker(
       "analytics",
       async (job) => {
         try {
-          console.log("📥 Received Job:", job.data);
+          console.log("Received Job:", job.data);
 
           const { shortId, ip, userAgent } = job.data;
 
@@ -45,9 +45,9 @@ async function startWorker() {
           // Increment Click Count
           await urlRepository.incrementClicks(shortId);
 
-          console.log(`✅ Analytics Saved For ${shortId}`);
+          console.log(`Analytics Saved For ${shortId}`);
         } catch (error) {
-          console.error("❌ Worker Processing Error:", error);
+          console.error("Worker Processing Error:", error);
 
           throw error;
         }
@@ -61,28 +61,28 @@ async function startWorker() {
     );
 
     worker.on("ready", () => {
-      console.log("✅ Worker Ready");
+      console.log("Worker Ready");
     });
 
     worker.on("active", (job) => {
-      console.log(`⚡ Processing Job ${job.id}`);
+      console.log(`Processing Job ${job.id}`);
     });
 
     worker.on("completed", (job) => {
-      console.log(`✅ Job ${job.id} Completed`);
+      console.log(`Job ${job.id} Completed`);
     });
 
     worker.on("failed", (job, err) => {
-      console.error(`❌ Job ${job?.id} Failed`, err);
+      console.error(`Job ${job?.id} Failed`, err);
     });
 
     worker.on("error", (err) => {
-      console.error("❌ Worker Error:", err);
+      console.error("Worker Error:", err);
     });
 
     // Graceful Shutdown
     process.on("SIGINT", async () => {
-      console.log("\n🛑 Shutting Down Worker...");
+      console.log("Shutting Down Worker...");
 
       await worker.close();
 
@@ -90,14 +90,14 @@ async function startWorker() {
     });
 
     process.on("SIGTERM", async () => {
-      console.log("\n🛑 Shutting Down Worker...");
+      console.log("Shutting Down Worker...");
 
       await worker.close();
 
       process.exit(0);
     });
   } catch (error) {
-    console.error("❌ Failed To Start Worker:", error);
+    console.error("Failed To Start Worker:", error);
 
     process.exit(1);
   }
