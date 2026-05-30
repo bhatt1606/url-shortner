@@ -1,0 +1,112 @@
+const urlService = require("../services/url.services");
+
+async function createShortUrl(req, res) {
+  try {
+    const { url } = req.body;
+
+    console.log('urk:::::::::::::::');
+    
+    if (!url) {
+      return res.status(400).json({
+        message: "URL is required",
+      });
+    }
+
+    const result = await urlService.createShortUrl(req.body);
+
+    return res.status(201).json({
+      shortId: result.shortId,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+}
+
+async function redirectUrl(req, res) {
+  try {
+    const { shortId } = req.params;
+
+    const ip =
+      req.headers["x-forwarded-for"]?.split(",")[0] ||
+      req.socket.remoteAddress ||
+      req.ip;
+
+    const redirectUrl = await urlService.redirectToOriginal(shortId, {
+      ip,
+      userAgent: req.headers["user-agent"],
+    });
+
+    return res.redirect(redirectUrl);
+  } catch (error) {
+    return res.status(404).json({
+      message: error.message,
+    });
+  }
+}
+
+async function getAnalytics(req, res) {
+  try {
+    const { shortId } = req.params;
+
+    const analytics = await urlService.getAnalytics(shortId);
+
+    return res.json(analytics);
+  } catch (error) {
+    return res.status(404).json({
+      message: error.message,
+    });
+  }
+}
+
+async function getAnalyticsSummary(req, res) {
+  try {
+    const { shortId } = req.params;
+
+    const summary = await urlService.getAnalyticsSummary(shortId);
+
+    return res.json(summary);
+  } catch (error) {
+    return res.status(404).json({
+      message: error.message,
+    });
+  }
+}
+
+async function getClickTrends(req, res) {
+  try {
+    const { shortId } = req.params;
+
+    const trends = await urlService.getClickTrends(shortId);
+
+    return res.json(trends);
+  } catch (error) {
+    return res.status(404).json({
+      message: error.message,
+    });
+  }
+}
+
+async function getHourlyTrends(req, res) {
+  try {
+    const { shortId } = req.params;
+
+    const trends = await urlService.getHourlyTrends(shortId);
+
+    return res.json(trends);
+  } catch (error) {
+    return res.status(404).json({
+      message: error.message,
+    });
+  }
+}
+
+module.exports = {
+  createShortUrl,
+  redirectUrl,
+  getAnalytics,
+  getAnalyticsSummary,
+  getClickTrends,
+  getHourlyTrends,
+};
