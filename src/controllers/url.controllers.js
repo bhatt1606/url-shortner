@@ -101,11 +101,26 @@ async function getHourlyTrends(req, res) {
   }
 }
 
+async function getDashboard(req, res) {
+  try {
+    const { shortId } = req.params;
+
+    const dashboard = await urlService.getDashboard(shortId);
+
+    return res.json(dashboard);
+  } catch (error) {
+    return res.status(404).json({
+      message: error.message,
+    });
+  }
+}
+
 module.exports = {
   createShortUrl,
   redirectUrl,
   getAnalytics,
   getAnalyticsSummary,
+  getDashboard,
   getClickTrends,
   getHourlyTrends,
 };

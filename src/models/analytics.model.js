@@ -19,4 +19,24 @@ const analyticsSchema = new mongoose.Schema(
   },
 );
 
+analyticsSchema.index({
+  shortId: 1,
+  createdAt: -1,
+});
+
+analyticsSchema.index({
+  shortId: 1,
+  country: 1,
+});
+
+analyticsSchema.index({
+  shortId: 1,
+  browser: 1,
+});
+
+analyticsSchema.index({
+  shortId: 1,
+  deviceType: 1,
+});
+
 module.exports = mongoose.model("Analytics", analyticsSchema);

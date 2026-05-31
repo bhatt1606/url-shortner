@@ -22,8 +22,18 @@ async function incrementClicks(shortId, count = 1) {
   );
 }
 
+async function deleteExpiredUrls() {
+  return URL.deleteMany({
+    expiresAt: {
+      $ne: null,
+      $lt: new Date(),
+    },
+  });
+}
+
 module.exports = {
   create,
   findByShortId,
   incrementClicks,
+  deleteExpiredUrls,
 };

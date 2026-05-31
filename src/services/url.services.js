@@ -5,6 +5,7 @@ const urlRepository = require("../repositories/url.repository");
 const analyticsRepository = require("../repositories/analytics.repository");
 const analyticsQueue = require("../queues/analytics.queue");
 const counter = require("../utils/counter");
+const { redirectsCounter } = require("../utils/metrics");
 
 const cache = require("../utils/cache");
 
@@ -87,11 +88,11 @@ async function redirectToOriginal(shortId, analyticsData) {
     throw new Error("URL expired");
   }
 
-  // 🚀 FAST PATH (IMPORTANT CHANGE)
   await counter.incrementClick(shortId);
 
-  // background analytics still async
   publishAnalyticsEvent(shortId, analyticsData).catch(console.error);
+
+  redirectsCounter.inc();
 
   return urlData.redirectUrl;
 }
@@ -251,6 +252,27 @@ async function getHourlyTrends(shortId) {
   return response;
 }
 
+async function getDashboard(shortId) {
+  const [summary, trends, hourly] = await Promise.all([
+    getAnalyticsSummary(shortId),
+    getClickTrends(shortId),
+    getHourlyTrends(shortId),
+  ]);
+
+  return {
+    shortId,
+    totalClicks: summary.totalClicks,
+    uniqueCountries: summary.uniqueCountries,
+    uniqueBrowsers: summary.uniqueBrowsers,
+    uniqueDevices: summary.uniqueDevices,
+    topCountries: summary.topCountries,
+    topBrowsers: summary.topBrowsers,
+    topDevices: summary.topDevices,
+    dailyClicks: trends.dailyClicks,
+    hourlyClicks: hourly.hourlyClicks,
+  };
+}
+
 module.exports = {
   createShortUrl,
   redirectToOriginal,
@@ -258,4 +280,5 @@ module.exports = {
   getAnalyticsSummary,
   getClickTrends,
   getHourlyTrends,
+  getDashboard,
 };

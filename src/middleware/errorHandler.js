@@ -1,15 +1,16 @@
 const logger = require("../utils/logger");
 
-function errorHandler(err, req, res) {
+function errorHandler(err, req, res, next) {
   logger.error({
     message: err.message,
     stack: err.stack,
-    url: req.url,
+    url: req.originalUrl,
     method: req.method,
   });
 
-  res.status(500).json({
-    message: "Internal Server Error",
+  return res.status(err.statusCode || 500).json({
+    success: false,
+    message: err.message || "Internal Server Error",
   });
 }
 
