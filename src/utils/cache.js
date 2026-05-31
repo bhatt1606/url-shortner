@@ -23,10 +23,14 @@ async function expire(key, ttl) {
 }
 
 async function del(key) {
+  if (!redisClient.isOpen) {
+    throw new Error("Redis client is not connected");
+  }
+
   return redisClient.del(key);
 }
 
-async function setJson(key, value, ttl=300) {
+async function setJson(key, value, ttl = 300) {
   const str = JSON.stringify(value);
   if (ttl) return redisClient.set(key, str, { EX: ttl });
   return redisClient.set(key, str);

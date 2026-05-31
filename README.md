@@ -15,6 +15,20 @@ This project goes beyond simple URL shortening and demonstrates scalable backend
 - URL expiration support
 - Redirect handling
 - Click tracking
+- Redis Caching
+- BullMQ Queue
+- Async Analytics Processing
+- Device Analytics
+- Browser Analytics
+- Geo Analytics
+- Daily Trends
+- Hourly Trends
+- Rate Limiting
+- Cleanup Worker
+- Analytics Cache
+- Distributed Click Counter
+- Swagger Documentation
+- Bull Board Dashboard
 
 ---
 
@@ -95,30 +109,27 @@ This project goes beyond simple URL shortening and demonstrates scalable backend
  │ Redis Cache   │              │   MongoDB     │
  └───────────────┘              └───────────────┘
 
-                        │
-                        ▼
+        │
+        ▼
 
-               Analytics Event
+  Analytics Event
 
-                        │
-                        ▼
-
-                ┌───────────────┐
-                │    BullMQ     │
-                └───────┬───────┘
-                        │
-                        ▼
-
-                ┌───────────────┐
-                │ Background    │
-                │ Worker        │
-                └───────┬───────┘
-                        │
-                        ▼
-
-                ┌───────────────┐
-                │ Analytics DB  │
-                └───────────────┘
+        │
+        ▼
+  ┌───────────────┐
+  │    BullMQ     │
+  └───────┬───────┘
+          │
+          ▼
+  ┌───────────────┐
+  │ Background    │
+  │ Worker        │
+  └───────┬───────┘
+          │
+          ▼
+  ┌───────────────┐
+  │ Analytics DB  │
+  └───────────────┘
 ```
 
 ---

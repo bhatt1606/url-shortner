@@ -22,7 +22,7 @@ async function createShortUrl(data) {
 
   let expiresAt = null;
 
-  if (expiresInDays) {
+  if (expiresInDays !== undefined && expiresInDays !== null) {
     expiresAt = new Date();
 
     expiresAt.setDate(expiresAt.getDate() + Number(expiresInDays));
@@ -88,11 +88,11 @@ async function redirectToOriginal(shortId, analyticsData) {
     throw new Error("URL expired");
   }
 
+  redirectsCounter.inc();
+
   await counter.incrementClick(shortId);
 
   publishAnalyticsEvent(shortId, analyticsData).catch(console.error);
-
-  redirectsCounter.inc();
 
   return urlData.redirectUrl;
 }
@@ -252,7 +252,7 @@ async function getHourlyTrends(shortId) {
   return response;
 }
 
-async function getDashboard(shortId) {
+async function getIdDashboard(shortId) {
   const [summary, trends, hourly] = await Promise.all([
     getAnalyticsSummary(shortId),
     getClickTrends(shortId),
@@ -273,6 +273,10 @@ async function getDashboard(shortId) {
   };
 }
 
+async function getDashboard() {
+  return urlRepository.getDashboardStats();
+}
+
 module.exports = {
   createShortUrl,
   redirectToOriginal,
@@ -280,5 +284,6 @@ module.exports = {
   getAnalyticsSummary,
   getClickTrends,
   getHourlyTrends,
+  getIdDashboard,
   getDashboard,
 };

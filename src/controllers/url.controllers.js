@@ -24,6 +24,7 @@ async function createShortUrl(req, res) {
 
 async function redirectUrl(req, res) {
   try {
+    console.log('redirect::::::::::');
     const { shortId } = req.params;
     const ip =
       req.headers["x-forwarded-for"]?.split(",")[0] ||
@@ -101,15 +102,27 @@ async function getHourlyTrends(req, res) {
   }
 }
 
-async function getDashboard(req, res) {
+async function getIdDashboard(req, res) {
   try {
     const { shortId } = req.params;
 
-    const dashboard = await urlService.getDashboard(shortId);
+    const dashboard = await urlService.getIdDashboard(shortId);
 
     return res.json(dashboard);
   } catch (error) {
     return res.status(404).json({
+      message: error.message,
+    });
+  }
+}
+
+async function getDashboard(req, res) {
+  try {
+    const dashboard = await urlService.getDashboard();
+
+    return res.json(dashboard);
+  } catch (error) {
+    return res.status(500).json({
       message: error.message,
     });
   }
@@ -120,7 +133,8 @@ module.exports = {
   redirectUrl,
   getAnalytics,
   getAnalyticsSummary,
-  getDashboard,
+  getIdDashboard,
   getClickTrends,
   getHourlyTrends,
+  getDashboard,
 };

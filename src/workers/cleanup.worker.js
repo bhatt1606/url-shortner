@@ -1,25 +1,54 @@
 require("dotenv").config();
 
 const connectDB = require("../config/mongodb");
+const { connectRedis } = require("../config/redis");
+
 const urlRepository = require("../repositories/url.repository");
 
-async function runCleanup() {
-  await connectDB();
+const cache = require("../utils/cache");
 
-  console.log("Cleanup Worker Started...");
+async function cleanup() {
+  try {
+    console.log("Running cleanup...");
 
-  setInterval(
-    async () => {
-      try {
-        const result = await urlRepository.deleteExpiredUrls();
+    // Fetch expired URLs first
+    const expiredUrls = await urlRepository.getExpiredUrls();
 
-        console.log(`Deleted ${result.deletedCount} expired URLs`);
-      } catch (error) {
-        console.error(error);
-      }
-    },
-    60 * 60 * 1000,
-  );
+    console.log(`Found ${expiredUrls.length} expired URLs`);
+
+    // Remove cache entries
+    for (const url of expiredUrls) {
+      await cache.del(url.shortId);
+    }
+
+    // Remove from Mongo
+    const result = await urlRepository.deleteExpiredUrls();
+
+    console.log(`Deleted ${result.deletedCount} expired URLs`);
+  } catch (error) {
+    console.error("Cleanup Worker Error:", error);
+  }
 }
 
-runCleanup();
+async function runCleanupWorker() {
+  try {
+    await connectDB();
+    await connectRedis();
+
+    console.log("Cleanup Worker Started...");
+
+    // Run immediately on startup
+    await cleanup();
+
+    // Run every hour
+    setInterval(cleanup, 60 * 60 * 1000);
+
+    console.log("Cleanup Scheduler Active");
+  } catch (error) {
+    console.error("Failed To Start Cleanup Worker", error);
+
+    process.exit(1);
+  }
+}
+
+runCleanupWorker();

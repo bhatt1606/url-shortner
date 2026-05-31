@@ -5,6 +5,7 @@ console.log("Analytics Worker Starting...");
 const { Worker } = require("bullmq");
 
 const connectDB = require("../config/mongodb");
+const { connectRedis } = require("../config/redis");
 const cache = require("../utils/cache");
 
 const analyticsRepository = require("../repositories/analytics.repository");
@@ -13,8 +14,9 @@ const { getLocation } = require("../utils/geoParser");
 
 async function startWorker() {
   try {
-    // Connect MongoDB
+    // Connect MongoDB and Redis
     await connectDB();
+    await connectRedis();
 
     console.log("Mongodb Connected...");
 

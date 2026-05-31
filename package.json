@@ -10,7 +10,7 @@
     "counter-worker": "nodemon src/workers/counter.worker.js",
     "build": "eslint .",
     "check": "node src/server.js",
-    "cleanup-worker": "nodemon src/workers/cleanup.worker.js"
+    "cleanup": "nodemon src/workers/cleanup.worker.js"
   },
   "keywords": [],
   "author": "",
