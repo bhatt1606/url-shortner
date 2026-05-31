@@ -1,4 +1,5 @@
 const { nanoid } = require("nanoid");
+const SUMMARY_CACHE_TTL = 300;
 
 const urlRepository = require("../repositories/url.repository");
 const analyticsRepository = require("../repositories/analytics.repository");
@@ -49,6 +50,7 @@ async function publishAnalyticsEvent(shortId, analyticsData) {
       userAgent: analyticsData.userAgent,
     },
     {
+      jobId: `${shortId}-${analyticsData.ip}-${Date.now()}`,
       attempts: 5,
       removeOnComplete: 100,
       removeOnFail: 50,
@@ -94,22 +96,33 @@ async function redirectToOriginal(shortId, analyticsData) {
   return urlData.redirectUrl;
 }
 
-async function getAnalytics(shortId) {
+async function getAnalytics(shortId, page = 1, limit = 50) {
   const url = await urlRepository.findByShortId(shortId);
 
   if (!url) {
     throw new Error("Short URL not found");
   }
 
-  const analytics = await analyticsRepository.findByShortId(shortId);
+  const analytics = await analyticsRepository.findByShortId(
+    shortId,
+    page,
+    limit,
+  );
 
   const redisClicks = await counter.getClickCount(shortId);
 
   return {
     shortId: url.shortId,
     redirectUrl: url.redirectUrl,
-    totalClicks: Number(redisClicks || url.totalClicks || 0),
-    analytics,
+
+    totalClicks: Number(redisClicks || 0) + Number(url.totalClicks || 0),
+
+    page: analytics.page,
+    limit: analytics.limit,
+    totalRecords: analytics.total,
+    totalPages: analytics.totalPages,
+
+    analytics: analytics.analytics,
   };
 }
 
@@ -118,6 +131,15 @@ async function getAnalyticsSummary(shortId) {
 
   if (!url) {
     throw new Error("Short URL not found");
+  }
+
+  const cacheKey = `summary:${shortId}`;
+  const cached = await cache.getJSON(cacheKey);
+
+  if (cached) {
+    console.log("Analytics Summary Cache HIT");
+
+    return cached;
   }
 
   const summary = await analyticsRepository.getAnalyticsSummary(shortId);
@@ -134,9 +156,11 @@ async function getAnalyticsSummary(shortId) {
     (item) => item.deviceType && item.deviceType !== "Unknown",
   ).length;
 
-  return {
+  const redisClicks = await counter.getClickCount(shortId);
+
+  const response = {
     shortId,
-    totalClicks: url.totalClicks,
+    totalClicks: Number(redisClicks || 0) + Number(url.totalClicks || 0),
 
     uniqueCountries,
     uniqueBrowsers,
@@ -150,6 +174,10 @@ async function getAnalyticsSummary(shortId) {
     topBrowsers: summary.browserStats,
     topDevices: summary.deviceStats,
   };
+
+  await cache.setJSON(cacheKey, response, SUMMARY_CACHE_TTL);
+
+  return response;
 }
 
 async function getClickTrends(shortId) {
@@ -159,13 +187,28 @@ async function getClickTrends(shortId) {
     throw new Error("Short URL not found");
   }
 
+  const cacheKey = `summary:${shortId}`;
+  const cached = await cache.getJSON(cacheKey);
+
+  if (cached) {
+    console.log("Analytics Summary Cache HIT");
+
+    return cached;
+  }
+
   const trends = await analyticsRepository.getDailyClickTrends(shortId);
 
-  return {
+  const redisClicks = await counter.getClickCount(shortId);
+
+  const response = {
     shortId,
-    totalClicks: url.totalClicks,
+    totalClicks: Number(redisClicks || 0) + Number(url.totalClicks || 0),
     dailyClicks: trends,
   };
+
+  await cache.setJSON(cacheKey, response, SUMMARY_CACHE_TTL);
+
+  return response;
 }
 
 async function getHourlyTrends(shortId) {
@@ -173,6 +216,15 @@ async function getHourlyTrends(shortId) {
 
   if (!url) {
     throw new Error("Short URL not found");
+  }
+
+  const cacheKey = `summary:${shortId}`;
+  const cached = await cache.getJSON(cacheKey);
+
+  if (cached) {
+    console.log("Analytics Summary Cache HIT");
+
+    return cached;
   }
 
   const hourlyClicks = await analyticsRepository.getHourlyClickTrends(shortId);
@@ -186,11 +238,17 @@ async function getHourlyTrends(shortId) {
     hours[item.hour].clicks = item.clicks;
   });
 
-  return {
+  const redisClicks = await counter.getClickCount(shortId);
+
+  const response = {
     shortId,
-    totalClicks: url.totalClicks,
+    totalClicks: Number(redisClicks || 0) + Number(url.totalClicks || 0),
     hourlyClicks: hours,
   };
+
+  await cache.setJSON(cacheKey, response, SUMMARY_CACHE_TTL);
+
+  return response;
 }
 
 module.exports = {

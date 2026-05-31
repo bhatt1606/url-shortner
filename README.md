@@ -1,123 +1,280 @@
-# 🚀 URL Shortener + Distributed Analytics Platform
+# 🚀 URL Shortener & Analytics Platform
 
-A scalable, production-style URL Shortener system built with **Node.js, Express, MongoDB, Redis, and BullMQ**, featuring real-time analytics, background processing, caching, and rate-limiting.
+A production-grade URL Shortener built with Node.js, MongoDB, Redis, BullMQ, and Docker.
+
+This project goes beyond simple URL shortening and demonstrates scalable backend architecture, asynchronous event processing, distributed caching, analytics aggregation, and cloud-ready deployment patterns.
 
 ---
 
-## 📌 Live Architecture
+# Features
 
+## Core Features
+
+- Generate short URLs
+- Custom aliases
+- URL expiration support
+- Redirect handling
+- Click tracking
+
+---
+
+## Analytics Platform
+
+- Device Analytics
+- Browser Analytics
+- OS Analytics
+- Geo Analytics
+- Daily Click Trends
+- Top Countries
+- Top Browsers
+- Top Devices
+- Analytics Summary Dashboard
+
+---
+
+## Scalability Features
+
+- Redis Caching
+- Redis Distributed Counters
+- BullMQ Queue Processing
+- Background Analytics Workers
+- Rate Limiting
+- Async Event Processing
+- Aggregation Pipelines
+- Dockerized Services
+
+---
+
+# Tech Stack
+
+## Backend
+
+- Node.js
+- Express.js
+
+## Database
+
+- MongoDB
+
+## Cache Layer
+
+- Redis
+
+## Queue Processing
+
+- BullMQ
+
+## Containerization
+
+- Docker
+- Docker Compose
+
+## Documentation
+
+- Swagger
+
+---
+
+# System Architecture
+
+```text
+                ┌───────────────┐
+                │    Client     │
+                └───────┬───────┘
+                        │
+                        ▼
+                ┌───────────────┐
+                │ Express API   │
+                └───────┬───────┘
+                        │
+        ┌───────────────┼───────────────┐
+        │                               │
+        ▼                               ▼
+
+ ┌───────────────┐              ┌───────────────┐
+ │ Redis Cache   │              │   MongoDB     │
+ └───────────────┘              └───────────────┘
+
+                        │
+                        ▼
+
+               Analytics Event
+
+                        │
+                        ▼
+
+                ┌───────────────┐
+                │    BullMQ     │
+                └───────┬───────┘
+                        │
+                        ▼
+
+                ┌───────────────┐
+                │ Background    │
+                │ Worker        │
+                └───────┬───────┘
+                        │
+                        ▼
+
+                ┌───────────────┐
+                │ Analytics DB  │
+                └───────────────┘
 ```
-Client
-   ↓
-Express API Layer
-   ↓
-Redis Cache + Rate Limiter + Logging
-   ↓
-Business Logic Layer (URL + Analytics Services)
-   ↓
-MongoDB (Source of Truth)
-   ↓
-BullMQ Queue (Event Streaming)
-   ↓
-Background Workers (Analytics Processing)
+
+---
+
+# Why Redis?
+
+Without caching:
+
+```text
+Request
+ ↓
+MongoDB Query
+ ↓
+Redirect
+```
+
+Every request hits MongoDB.
+
+With Redis:
+
+```text
+Request
+ ↓
+Redis
+ ↓
+Redirect
+```
+
+Benefits:
+
+- Lower latency
+- Reduced database load
+- Better scalability
+
+---
+
+# Why BullMQ?
+
+Naive approach:
+
+```text
+Redirect
+ ↓
+Save Analytics
+ ↓
+Increment Clicks
+ ↓
+Return Response
+```
+
+Problem:
+
+User waits for analytics processing.
+
+Implemented approach:
+
+```text
+Redirect
+ ↓
+Publish Event
+ ↓
+Immediate Response
+
+Worker
+ ↓
+Save Analytics
+ ↓
+Update Counters
+```
+
+Benefits:
+
+- Faster redirects
+- Better scalability
+- Fault tolerance
+- Retry support
+
+---
+
+# Distributed Click Counter
+
+Instead of updating MongoDB on every click:
+
+```text
+Click
+ ↓
+MongoDB Write
+```
+
+Implemented:
+
+```text
+Click
+ ↓
+Redis INCR
+ ↓
+Background Sync
+ ↓
+MongoDB
+```
+
+Benefits:
+
+- Reduces database writes
+- Supports high traffic workloads
+- Better horizontal scalability
+
+---
+
+# Analytics Pipeline
+
+Every redirect creates an event:
+
+```json
+{
+  "shortId": "abc123",
+  "ip": "127.0.0.1",
+  "userAgent": "Chrome"
+}
+```
+
+Worker enriches analytics:
+
+```json
+{
+  "country": "India",
+  "city": "Delhi",
+  "browser": "Chrome",
+  "os": "Mac OS",
+  "deviceType": "Desktop"
+}
+```
+
+Stored asynchronously.
+
+---
+
+# API Documentation
+
+Swagger UI:
+
+```http
+GET /api-docs
 ```
 
 ---
 
-## ⚙️ Tech Stack
+# Core APIs
 
-### Backend
-
-* Node.js
-* Express.js
-* MongoDB (Mongoose)
-
-### Performance & Scaling
-
-* Redis (Caching + Rate Limiting + Counters)
-* BullMQ (Background Job Processing)
-
-### Analytics
-
-* Device detection (`ua-parser-js`)
-* Geo location (`geoip-lite`)
-* Aggregation pipelines (MongoDB)
-
-### Dev Tools
-
-* Nodemon
-* Postman
-* dotenv
-
----
-
-## ✨ Features
-
-### 🔗 URL Shortener
-
-* Generate short URLs using `nanoid`
-* Custom alias support
-* Expiry-based URLs
-* Redirect to original URL
-
----
-
-### ⚡ High Performance Layer
-
-* Redis caching for fast redirects
-* Distributed click counter using Redis INCR
-* Cache hit/miss optimization
-
----
-
-### 📊 Advanced Analytics System
-
-* Total clicks tracking
-* Device analytics (browser, OS, device type)
-* Geo analytics (country, city)
-* Real-time analytics ingestion via BullMQ
-* Aggregated analytics dashboard API
-
----
-
-### 📈 Analytics APIs
-
-* Raw click analytics
-* Summary analytics
-* Daily click trends
-* Top countries, browsers, devices
-
----
-
-### 🚦 Rate Limiting & Anti-Abuse System
-
-* Global API rate limiting (Redis-backed)
-* Per-short URL rate limiting
-* IP-based abuse detection
-* Temporary IP blocking on suspicious activity
-
----
-
-### 🧠 Background Processing (BullMQ)
-
-* Async analytics processing
-* Non-blocking request flow
-* Retry + backoff strategies
-* Worker-based architecture
-
----
-
-## 📡 API Endpoints
-
-### 🔗 URL APIs
-
-#### Create Short URL
+## Create Short URL
 
 ```http
 POST /url
 ```
 
-**Body:**
+Request
 
 ```json
 {
@@ -127,21 +284,31 @@ POST /url
 }
 ```
 
----
+Response
 
-#### Redirect URL
-
-```http
-GET /:shortId
+```json
+{
+  "shortId": "google"
+}
 ```
 
-Redirects to original URL (with analytics tracking)
+---
+
+## Redirect URL
+
+```http
+GET /google
+```
+
+Redirects to:
+
+```text
+https://google.com
+```
 
 ---
 
-## 📊 Analytics APIs
-
-### Get Full Analytics
+## Analytics
 
 ```http
 GET /analytics/:shortId
@@ -149,119 +316,107 @@ GET /analytics/:shortId
 
 ---
 
-### Get Analytics Summary
+## Analytics Summary
 
 ```http
 GET /analytics/:shortId/summary
 ```
 
-Returns:
+Example:
 
 ```json
 {
-  "shortId": "abc123",
-  "totalClicks": 120,
+  "totalClicks": 542,
   "uniqueCountries": 5,
-  "uniqueBrowsers": 3,
+  "uniqueBrowsers": 4,
   "uniqueDevices": 2,
-  "topCountries": [],
-  "topBrowsers": [],
-  "topDevices": []
+  "mostPopularCountry": "India",
+  "mostPopularBrowser": "Chrome"
 }
 ```
 
 ---
 
-### Get Daily Trends
+## Daily Click Trends
 
 ```http
 GET /analytics/:shortId/trends
 ```
 
----
+Example:
 
-## 🧠 System Design Highlights
-
-### 🔴 Caching Strategy
-
-* Redis stores hot URLs
-* Reduces DB reads significantly
-* Cache-aside pattern
-
-### 🔴 Queue-Based Analytics
-
-* Click events pushed to BullMQ
-* Worker processes asynchronously
-* Prevents request blocking
-
-### 🔴 Rate Limiting Strategy
-
-* Global API protection
-* Per-URL abuse prevention
-* IP-based blocking system
-
-### 🔴 Data Modeling Strategy
-
-* MongoDB as source of truth
-* Analytics stored as event logs
-* Aggregation used for dashboards
-
----
-
-## 📦 Project Structure
-
-```
-src/
-├── config/
-├── controllers/
-├── services/
-├── repositories/
-├── models/
-├── routes/
-├── middleware/
-├── utils/
-├── workers/
-├── queues/
-├── app.js
-└── server.js
+```json
+{
+  "dailyClicks": [
+    {
+      "date": "2025-08-01",
+      "clicks": 120
+    },
+    {
+      "date": "2025-08-02",
+      "clicks": 180
+    }
+  ]
+}
 ```
 
 ---
 
-## 🚀 How to Run Locally
+# Queue Dashboard
 
-### 1. Clone Repo
+Bull Board:
+
+```http
+GET /admin/queues
+```
+
+Features:
+
+- Waiting Jobs
+- Active Jobs
+- Completed Jobs
+- Failed Jobs
+- Retry Failed Jobs
+
+---
+
+# Local Setup
+
+## Clone
 
 ```bash
-git clone <repo-url>
-cd url-shortener
+git clone https://github.com/bhatt1606/url-shortner.git
 ```
 
-### 2. Install Dependencies
+## Install
 
 ```bash
 npm install
 ```
 
-### 3. Start Redis
+## Environment Variables
 
-```bash
-redis-server
+```env
+PORT=8001
+
+MONGO_URI=mongodb://localhost:27017/url-shortener
+
+REDIS_HOST=localhost
+
+REDIS_PORT=6379
 ```
 
-### 4. Start MongoDB
+---
 
-```bash
-mongod
-```
-
-### 5. Run Server
+## Run Application
 
 ```bash
 npm run dev
 ```
 
-### 6. Run Worker
+---
+
+## Run Worker
 
 ```bash
 npm run worker
@@ -269,83 +424,83 @@ npm run worker
 
 ---
 
-## 🔥 Environment Variables
+# Docker Setup
 
-```env
-PORT=8001
-MONGO_URI=mongodb://localhost:27017/short-url
-REDIS_HOST=localhost
-REDIS_PORT=6379
+Start complete stack:
+
+```bash
+docker-compose up --build
 ```
 
----
+Services:
 
-## 📊 What This Project Demonstrates
-
-This project showcases:
-
-* Scalable backend architecture
-* Event-driven systems
-* Distributed caching
-* Queue-based processing
-* Real-time analytics pipeline
-* Rate limiting and abuse prevention
-* Clean architecture design (Controller → Service → Repository)
+- API
+- Worker
+- MongoDB
+- Redis
 
 ---
 
-## 🧠 Future Improvements
+# Performance Optimizations
 
-* Docker Compose setup
-* Kubernetes deployment
-* Prometheus + Grafana monitoring
-* JWT authentication layer
-* Multi-region Redis clustering
-* Clickstream real-time dashboard (WebSockets)
+### Redis Caching
 
----
+Reduced redirect lookup latency by avoiding repeated MongoDB reads.
 
-                   ┌──────────────┐
-                   │   Client     │
-                   └──────┬───────┘
-                          │
-                          ▼
-                 ┌─────────────────┐
-                 │  Express API    │
-                 └──────┬──────────┘
-                        │
-        ┌───────────────┼────────────────┐
-        ▼               ▼                ▼
- ┌────────────┐  ┌────────────┐  ┌──────────────┐
- │ Redis Cache│  │ Rate Limit │  │ Logging      │
- └────┬───────┘  └────┬───────┘  └────┬─────────┘
-      │               │               │
-      ▼               ▼               ▼
+### Async Analytics Processing
 
- ┌──────────────────────────────┐
- │       Business Logic         │
- │ (URL + Analytics Service)    │
- └────────────┬─────────────────┘
-              ▼
-     ┌───────────────────┐
-     │    MongoDB        │
-     │ (Source of Truth) │
-     └────────┬──────────┘
-              ▼
-     ┌───────────────────┐
-     │   BullMQ Queue    │
-     └────────┬──────────┘
-              ▼
-     ┌───────────────────┐
-     │ Background Worker │
-     │ Analytics System  │
-     └───────────────────┘
+Moved analytics ingestion to BullMQ workers so redirects are not blocked by database writes.
+
+### Distributed Counters
+
+Implemented Redis-based distributed click counter architecture, reducing MongoDB write pressure by batching click synchronization through background workers.
+
+### Aggregation Pipelines
+
+Implemented MongoDB aggregation pipelines for analytics summaries and trend analysis.
 
 ---
 
-## 👨‍💻 Author
+# Engineering Highlights
 
-**Backend Engineer (MERN + System Design Focus)**
-Built as a production-grade system design project.
+- Clean Architecture (Controller → Service → Repository)
+- Background Job Processing
+- Distributed Cache Layer
+- Event-Driven Analytics
+- Aggregation Pipelines
+- Rate Limiting
+- Dockerized Infrastructure
+- Queue Monitoring Dashboard
+- Production-Oriented Backend Design
 
 ---
+
+# Future Improvements
+
+- Kafka-based Event Streaming
+- Click Fraud Detection
+- Multi-region Redis
+- Horizontal Worker Scaling
+- Kubernetes Deployment
+- Prometheus Metrics
+- Grafana Dashboards
+
+---
+
+# Author
+
+Ankur Bhatt
+
+Backend-Focused Full Stack Engineer
+
+- Node.js
+- MongoDB
+- Redis
+- BullMQ
+- AWS
+
+GitHub:
+https://github.com/bhatt1606
+
+LinkedIn:
+https://www.linkedin.com/in/ankur-bhatt-b992031ab/

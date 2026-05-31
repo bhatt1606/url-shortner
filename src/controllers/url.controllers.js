@@ -3,7 +3,7 @@ const urlService = require("../services/url.services");
 async function createShortUrl(req, res) {
   try {
     const { url } = req.body;
-    
+
     if (!url) {
       return res.status(400).json({
         message: "URL is required",
@@ -25,7 +25,6 @@ async function createShortUrl(req, res) {
 async function redirectUrl(req, res) {
   try {
     const { shortId } = req.params;
-
     const ip =
       req.headers["x-forwarded-for"]?.split(",")[0] ||
       req.socket.remoteAddress ||
@@ -47,8 +46,10 @@ async function redirectUrl(req, res) {
 async function getAnalytics(req, res) {
   try {
     const { shortId } = req.params;
+    const page = Math.max(1, Number(req.query.page || 1));
+    const limit = Math.min(100, Math.max(1, Number(req.query.limit || 50)));
 
-    const analytics = await urlService.getAnalytics(shortId);
+    const analytics = await urlService.getAnalytics(shortId, page, limit);
 
     return res.json(analytics);
   } catch (error) {

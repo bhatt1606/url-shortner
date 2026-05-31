@@ -5,9 +5,9 @@ console.log("Analytics Worker Starting...");
 const { Worker } = require("bullmq");
 
 const connectDB = require("../config/mongodb");
+const cache = require("../utils/cache");
 
 const analyticsRepository = require("../repositories/analytics.repository");
-const urlRepository = require("../repositories/url.repository");
 const { parseUserAgent } = require("../utils/deviceParser");
 const { getLocation } = require("../utils/geoParser");
 
@@ -42,8 +42,9 @@ async function startWorker() {
             city: location.city || null,
           });
 
-          // Increment Click Count
-          await urlRepository.incrementClicks(shortId);
+          await cache.del(`summary:${shortId}`);
+          await cache.del(`trends:${shortId}`);
+          await cache.del(`hourly:${shortId}`);
 
           console.log(`Analytics Saved For ${shortId}`);
         } catch (error) {

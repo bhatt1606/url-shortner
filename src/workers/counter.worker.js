@@ -16,8 +16,14 @@ async function flushCounters() {
       const count = await redis.get(key);
 
       if (count) {
-        await urlRepository.incrementClicks(shortId, parseInt(count));
-        await redis.del(key);
+        const updated = await urlRepository.incrementClicks(
+          shortId,
+          Number(count),
+        );
+
+        if (updated) {
+          await redis.del(key);
+        }
       }
     }
   } while (cursor !== "0");

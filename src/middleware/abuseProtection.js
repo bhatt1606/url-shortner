@@ -5,7 +5,10 @@ const WINDOW = 60;
 const BLOCK_TIME = 600; // 10 min
 
 async function abuseProtection(req, res, next) {
-  const ip = req.ip;
+  const ip =
+    req.headers["x-forwarded-for"]?.split(",")[0] ||
+    req.socket.remoteAddress ||
+    req.ip;
 
   const key = `abuse:${ip}`;
 

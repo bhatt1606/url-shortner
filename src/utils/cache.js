@@ -26,7 +26,7 @@ async function del(key) {
   return redisClient.del(key);
 }
 
-async function setJson(key, value, ttl) {
+async function setJson(key, value, ttl=300) {
   const str = JSON.stringify(value);
   if (ttl) return redisClient.set(key, str, { EX: ttl });
   return redisClient.set(key, str);

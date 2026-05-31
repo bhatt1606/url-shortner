@@ -4,8 +4,12 @@
   "description": "",
   "main": "src/server.js",
   "scripts": {
+    "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "worker": "nodemon src/workers/analytics.worker.js"
+    "worker": "nodemon src/workers/analytics.worker.js",
+    "counter-worker": "nodemon src/workers/counter.worker.js",
+    "build": "eslint .",
+    "check": "node src/server.js"
   },
   "keywords": [],
   "author": "",
@@ -29,6 +33,7 @@
   },
   "devDependencies": {
     "eslint": "^10.4.1",
+    "eslint-config-prettier": "^10.1.8",
     "nodemon": "^3.1.14",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.3"

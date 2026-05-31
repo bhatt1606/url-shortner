@@ -5,7 +5,10 @@ const LIMIT = 20; // clicks per minute per IP per URL
 
 async function urlRateLimiter(req, res, next) {
   const shortId = req.params.shortId;
-  const ip = req.ip;
+  const ip =
+    req.headers["x-forwarded-for"]?.split(",")[0] ||
+    req.socket.remoteAddress ||
+    req.ip;
 
   const key = `rl:${shortId}:${ip}`;
 

@@ -4,7 +4,7 @@ const urlRoutes = require("./routes/url.routes");
 
 const abuseProtection = require("./middleware/abuseProtection");
 const requestLogger = require("./middleware/requestLogger");
-const errorHandler = require('./middleware/errorHandler');
+const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
 

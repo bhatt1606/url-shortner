@@ -4,12 +4,23 @@ async function create(data) {
   return Analytics.create(data);
 }
 
-async function findByShortId(shortId) {
-  return Analytics.find({
-    shortId,
-  }).sort({
-    createdAt: -1,
-  });
+async function findByShortId(shortId, page = 1, limit = 50) {
+  const skip = (page - 1) * limit;
+
+  const [analytics, total] = await Promise.all([
+    Analytics.find({ shortId }).sort({ createdAt: -1 }).skip(skip).limit(limit),
+
+    Analytics.countDocuments({
+      shortId,
+    }),
+  ]);
+
+  return {
+    analytics,
+    total,
+    page,
+    pages: Math.ceil(total / limit),
+  };
 }
 
 async function getAnalyticsSummary(shortId) {
@@ -30,6 +41,13 @@ async function getAnalyticsSummary(shortId) {
           clicks: {
             $sum: 1,
           },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          country: "$_id",
+          clicks: 1,
         },
       },
       {

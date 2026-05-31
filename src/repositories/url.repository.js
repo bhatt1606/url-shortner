@@ -8,12 +8,12 @@ async function findByShortId(shortId) {
   return URL.findOne({ shortId });
 }
 
-async function incrementClicks(shortId) {
+async function incrementClicks(shortId, count = 1) {
   return URL.findOneAndUpdate(
     { shortId },
     {
       $inc: {
-        totalClicks: 1,
+        totalClicks: count,
       },
     },
     {
