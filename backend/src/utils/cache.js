@@ -48,11 +48,11 @@ async function incrBy(key, value) {
 async function scan(pattern, count = 100) {
   const keys = [];
 
-  for await (const key of redisClient.scanIterator({
+  for await (const batch of redisClient.scanIterator({
     MATCH: pattern,
     COUNT: count,
   })) {
-    keys.push(key);
+    keys.push(...batch);
   }
 
   return keys;
