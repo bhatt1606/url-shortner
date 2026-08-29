@@ -135,7 +135,7 @@ async function getAnalyticsSummary(shortId) {
   }
 
   const cacheKey = `summary:${shortId}`;
-  const cached = await cache.getJSON(cacheKey);
+  const cached = await cache.getJson(cacheKey);
 
   if (cached) {
     console.log("Analytics Summary Cache HIT");
@@ -176,7 +176,7 @@ async function getAnalyticsSummary(shortId) {
     topDevices: summary.deviceStats,
   };
 
-  await cache.setJSON(cacheKey, response, SUMMARY_CACHE_TTL);
+  await cache.setJson(cacheKey, response, SUMMARY_CACHE_TTL);
 
   return response;
 }
@@ -188,11 +188,11 @@ async function getClickTrends(shortId) {
     throw new Error("Short URL not found");
   }
 
-  const cacheKey = `summary:${shortId}`;
-  const cached = await cache.getJSON(cacheKey);
+  const cacheKey = `trends:${shortId}`;
+  const cached = await cache.getJson(cacheKey);
 
   if (cached) {
-    console.log("Analytics Summary Cache HIT");
+    console.log("Click Trends Cache HIT");
 
     return cached;
   }
@@ -207,7 +207,7 @@ async function getClickTrends(shortId) {
     dailyClicks: trends,
   };
 
-  await cache.setJSON(cacheKey, response, SUMMARY_CACHE_TTL);
+  await cache.setJson(cacheKey, response, SUMMARY_CACHE_TTL);
 
   return response;
 }
@@ -219,11 +219,11 @@ async function getHourlyTrends(shortId) {
     throw new Error("Short URL not found");
   }
 
-  const cacheKey = `summary:${shortId}`;
-  const cached = await cache.getJSON(cacheKey);
+  const cacheKey = `hourly:${shortId}`;
+  const cached = await cache.getJson(cacheKey);
 
   if (cached) {
-    console.log("Analytics Summary Cache HIT");
+    console.log("Hourly Trends Cache HIT");
 
     return cached;
   }
@@ -247,7 +247,7 @@ async function getHourlyTrends(shortId) {
     hourlyClicks: hours,
   };
 
-  await cache.setJSON(cacheKey, response, SUMMARY_CACHE_TTL);
+  await cache.setJson(cacheKey, response, SUMMARY_CACHE_TTL);
 
   return response;
 }
