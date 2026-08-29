@@ -1,0 +1,205 @@
+{
+  "info": {
+    "name": "URL Shortener & Analytics Platform",
+    "description": "All routes exposed by the backend in backend/src/routes/url.routes.js, plus the standalone /metrics endpoint from app.js. Set the collection variables baseUrl and shortId before running requests — most analytics requests depend on shortId existing (create one with 'Create Short URL' first, then visit it once with 'Redirect to Original URL' so click data exists to look at).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8001",
+      "type": "string"
+    },
+    {
+      "key": "shortId",
+      "value": "google",
+      "type": "string",
+      "description": "Set this to a shortId that actually exists (e.g. the one returned by 'Create Short URL') before running the analytics/redirect requests."
+    }
+  ],
+  "item": [
+    {
+      "name": "URL",
+      "item": [
+        {
+          "name": "Create Short URL",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"url\": \"https://google.com\",\n  \"customAlias\": \"google\",\n  \"expiresInDays\": 7\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/url",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "url"]
+            },
+            "description": "customAlias and expiresInDays are both optional. Omit customAlias to get an auto-generated 8-character id. Omit expiresInDays for a link that never expires."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Short URL (auto-generated id, no expiry)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"url\": \"https://example.com/some/very/long/path?with=query&params=true\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/url",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "url"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Redirect to Original URL",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{shortId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{shortId}}"]
+            },
+            "description": "Postman follows redirects by default, so you'll see the final destination's response rather than the 302 itself unless you disable 'Automatically follow redirects' in Settings. Rate-limited to 20 requests/minute per IP per shortId."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Analytics",
+      "item": [
+        {
+          "name": "Get Raw Click Records",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/{{shortId}}?page=1&limit=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "{{shortId}}"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "50",
+                  "description": "Capped at 100 server-side"
+                }
+              ]
+            },
+            "description": "Paginated list of individual click events (ip, browser, os, deviceType, country, city, createdAt) plus totalClicks combining synced Mongo count with the live Redis counter."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Analytics Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/{{shortId}}/summary",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "{{shortId}}", "summary"]
+            },
+            "description": "Top countries/browsers/devices with click counts, unique counts, and most-popular values. Cached in Redis for 5 minutes; invalidated whenever a new click is processed by the analytics worker."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Daily Click Trends",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/{{shortId}}/trends",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "{{shortId}}", "trends"]
+            },
+            "description": "Click counts per calendar day for the last 7 days."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Hourly Click Trends",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/{{shortId}}/hourly-trends",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "{{shortId}}", "hourly-trends"]
+            },
+            "description": "Click counts bucketed by hour-of-day (0-23), all-time, not scoped to a date range."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Combined Analytics Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/analytics/{{shortId}}/dashboard",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "analytics", "{{shortId}}", "dashboard"]
+            },
+            "description": "Summary + daily trends + hourly trends for one shortId, merged into a single response (fetched in parallel server-side)."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Platform",
+      "item": [
+        {
+          "name": "Get Global Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/dashboard",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "dashboard"]
+            },
+            "description": "Platform-wide stats across every short URL: total/active/expired counts, total clicks, and the top 10 URLs by clicks. Not Redis-cached — always reads MongoDB directly."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Prometheus Metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/metrics",
+              "host": ["{{baseUrl}}"],
+              "path": ["metrics"]
+            },
+            "description": "Not under /api. Prometheus-format text output, includes the custom redirectsCounter plus default Node process metrics."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

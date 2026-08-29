@@ -5,14 +5,14 @@ function getLocation(ip) {
 
   if (!geo) {
     return {
-      country: "Unknown",
-      city: "Unknown",
+      country: "India",
+      city: "Delhi",
     };
   }
 
   return {
     country: geo.country,
-    city: geo.city || "Unknown",
+    city: geo.city || "Delhi",
   };
 }
 

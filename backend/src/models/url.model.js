@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const config = require("../config/index");
 
 const urlSchema = new mongoose.Schema(
   {
@@ -25,7 +26,7 @@ const urlSchema = new mongoose.Schema(
   },
 );
 
-urlSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 3600 });
+urlSchema.index({ expiresAt: 1 }, { expireAfterSeconds: config.urlExpiryGraceMs });
 
 const URL = mongoose.model("URL", urlSchema);
 

@@ -2,6 +2,7 @@ require("dotenv").config();
 
 const connectDB = require("../config/mongodb");
 const { connectRedis } = require("../config/redis");
+const config = require("../config/index");
 
 const urlRepository = require("../repositories/url.repository");
 
@@ -41,7 +42,7 @@ async function runCleanupWorker() {
     await cleanup();
 
     // Run every hour
-    setInterval(cleanup, 60 * 60 * 1000);
+    setInterval(cleanup, config.workerCleanupIntervalMs);
 
     console.log("Cleanup Scheduler Active");
   } catch (error) {

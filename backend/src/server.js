@@ -1,12 +1,11 @@
-require("dotenv").config();
-
 const app = require("./app");
+const config = require("./config/index");
 
 const connectDB = require("./config/mongodb");
 const { connectRedis } = require("./config/redis");
 const createGlobalRateLimiter = require("./middleware/globalRateLimiter");
 
-const PORT = process.env.PORT || 8001;
+const PORT = config.port;
 
 async function startServer() {
   try {

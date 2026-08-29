@@ -1,4 +1,5 @@
 const URL = require("../models/url.model");
+const config = require("../config/index");
 
 async function create(data) {
   return URL.create(data);
@@ -23,22 +24,22 @@ async function incrementClicks(shortId, count = 1) {
 }
 
 async function getExpiredUrls() {
-  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+  const cutoff = new Date(Date.now() - config.urlExpiryGraceMs);
 
   return URL.find({
     expiresAt: {
-      $lte: oneHourAgo,
+      $lte: cutoff,
     },
   });
 }
 
 async function deleteExpiredUrls() {
-  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+  const cutoff = new Date(Date.now() - config.urlExpiryGraceMs);
 
   return URL.deleteMany({
     expiresAt: {
       $ne: null,
-      $lte: oneHourAgo,
+      $lte: cutoff,
     },
   });
 }
