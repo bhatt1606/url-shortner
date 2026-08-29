@@ -24,7 +24,6 @@ async function createShortUrl(req, res) {
 
 async function redirectUrl(req, res) {
   try {
-    console.log('redirect::::::::::');
     const { shortId } = req.params;
     const ip =
       req.headers["x-forwarded-for"]?.split(",")[0] ||
